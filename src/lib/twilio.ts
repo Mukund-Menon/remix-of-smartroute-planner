@@ -2,28 +2,37 @@ import twilio from 'twilio';
 
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
-const phoneNumber = process.env.TWILIO_PHONE_NUMBER;
+const whatsappNumber = process.env.TWILIO_WHATSAPP_NUMBER;
 
-if (!accountSid || !authToken || !phoneNumber) {
-  console.warn('⚠️ Twilio credentials not configured. SMS messaging will not work.');
+if (!accountSid || !authToken || !whatsappNumber) {
+  console.warn('⚠️ Twilio credentials not configured. WhatsApp messaging will not work.');
 }
 
 export const twilioClient = accountSid && authToken ? twilio(accountSid, authToken) : null;
-export const twilioPhoneNumber = phoneNumber;
+export const twilioWhatsAppNumber = whatsappNumber;
 
-export async function sendSMS(to: string, message: string): Promise<{ success: boolean; sid?: string; error?: string }> {
-  if (!twilioClient || !twilioPhoneNumber) {
+export async function sendWhatsApp(to: string, message: string): Promise<{ success: boolean; sid?: string; error?: string }> {
+  if (!twilioClient || !twilioWhatsAppNumber) {
     return {
       success: false,
-      error: 'Twilio not configured'
+      error: 'Twilio WhatsApp not configured'
     };
   }
 
   try {
+    // Format phone numbers for WhatsApp
+    const formattedFrom = twilioWhatsAppNumber.startsWith('whatsapp:') 
+      ? twilioWhatsAppNumber 
+      : `whatsapp:${twilioWhatsAppNumber}`;
+    
+    const formattedTo = to.startsWith('whatsapp:') 
+      ? to 
+      : `whatsapp:${to}`;
+
     const response = await twilioClient.messages.create({
       body: message,
-      from: twilioPhoneNumber,
-      to: to,
+      from: formattedFrom,
+      to: formattedTo,
     });
 
     return {
@@ -31,22 +40,22 @@ export async function sendSMS(to: string, message: string): Promise<{ success: b
       sid: response.sid,
     };
   } catch (error: any) {
-    console.error('Twilio SMS error:', error);
+    console.error('Twilio WhatsApp error:', error);
     return {
       success: false,
-      error: error.message || 'Failed to send SMS',
+      error: error.message || 'Failed to send WhatsApp message',
     };
   }
 }
 
-export async function sendBulkSMS(recipients: Array<{ phone: string; message: string }>): Promise<{
+export async function sendBulkWhatsApp(recipients: Array<{ phone: string; message: string }>): Promise<{
   successful: number;
   failed: number;
   results: Array<{ phone: string; success: boolean; sid?: string; error?: string }>;
 }> {
   const results = await Promise.all(
     recipients.map(async ({ phone, message }) => {
-      const result = await sendSMS(phone, message);
+      const result = await sendWhatsApp(phone, message);
       return {
         phone,
         ...result,

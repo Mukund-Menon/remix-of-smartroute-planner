@@ -3,7 +3,7 @@ import { db } from '@/db';
 import { messages, groups, groupMembers, user } from '@/db/schema';
 import { eq, and, asc, ne } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
-import { sendBulkSMS } from '@/lib/twilio';
+import { sendBulkWhatsApp } from '@/lib/twilio';
 
 export async function GET(request: NextRequest) {
   try {
@@ -196,7 +196,7 @@ export async function POST(request: NextRequest) {
       sender: sender[0],
     };
 
-    // Send SMS notifications to other group members (async, don't wait)
+    // Send WhatsApp notifications to other group members (async, don't wait)
     sendGroupMessageNotifications(groupIdInt, session.user.id, sender[0]?.name || 'Someone', message.trim(), group[0].name)
       .catch(err => console.error('Failed to send group message notifications:', err));
 
@@ -246,7 +246,7 @@ async function sendGroupMessageNotifications(
     console.log(`Group: ${groupName} (ID: ${groupId})`);
     console.log(`From: ${senderName}`);
     console.log(`Message: ${messageText}`);
-    console.log(`\nNotifying ${otherMembers.length} member(s):`);
+    console.log(`\nNotifying ${otherMembers.length} member(s) via WhatsApp:`);
     
     otherMembers.forEach(member => {
       console.log(`- ${member.userName || member.userEmail || 'Unknown'}`);
@@ -254,7 +254,7 @@ async function sendGroupMessageNotifications(
     
     console.log('\n===================================\n');
 
-    // Optional: Send actual SMS if users have phone numbers stored
+    // Optional: Send actual WhatsApp if users have phone numbers stored
     // This would require a user phone number field in the database
     
   } catch (error) {

@@ -3,7 +3,7 @@ import { db } from '@/db';
 import { emergencyAlerts, emergencyContacts, trips, user } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { auth } from '@/lib/auth';
-import { sendBulkSMS } from '@/lib/twilio';
+import { sendBulkWhatsApp } from '@/lib/twilio';
 
 export async function POST(request: NextRequest) {
   try {
@@ -149,28 +149,28 @@ export async function POST(request: NextRequest) {
       })
       .returning();
 
-    // Prepare SMS messages for all contacts
-    const smsRecipients = contacts.map(contact => ({
+    // Prepare WhatsApp messages for all contacts
+    const whatsappRecipients = contacts.map(contact => ({
       phone: contact.phone,
       message: `${alertMessage}\n\nContact ${userName} immediately at ${userPhone}.\n\nView location: https://www.google.com/maps?q=${locationLat},${locationLng}`
     }));
 
-    // Send SMS messages via Twilio
-    const smsResults = await sendBulkSMS(smsRecipients);
+    // Send WhatsApp messages via Twilio
+    const whatsappResults = await sendBulkWhatsApp(whatsappRecipients);
 
     // Log notification details
     console.log('=== EMERGENCY ALERT NOTIFICATIONS ===');
     console.log(`Alert ID: ${newAlert[0].id}`);
     console.log(`From: ${userName} (${userId})`);
     console.log(`Message: ${alertMessage}`);
-    console.log(`\nSMS Results: ${smsResults.successful} successful, ${smsResults.failed} failed`);
+    console.log(`\nWhatsApp Results: ${whatsappResults.successful} successful, ${whatsappResults.failed} failed`);
     console.log('\nNotifications sent to:');
     
-    smsResults.results.forEach(result => {
+    whatsappResults.results.forEach(result => {
       const contact = contacts.find(c => c.phone === result.phone);
       console.log(`\n- Contact: ${contact?.name || 'Unknown'} (${contact?.relationship || 'N/A'})`);
       console.log(`  Phone: ${result.phone}`);
-      console.log(`  SMS Status: ${result.success ? '✅ Sent' : '❌ Failed'}`);
+      console.log(`  WhatsApp Status: ${result.success ? '✅ Sent' : '❌ Failed'}`);
       if (result.sid) console.log(`  Message SID: ${result.sid}`);
       if (result.error) console.log(`  Error: ${result.error}`);
     });
@@ -179,13 +179,13 @@ export async function POST(request: NextRequest) {
 
     // Format contacts for response
     const contactsForResponse = contacts.map(contact => {
-      const smsResult = smsResults.results.find(r => r.phone === contact.phone);
+      const whatsappResult = whatsappResults.results.find(r => r.phone === contact.phone);
       return {
         id: contact.id,
         name: contact.name,
         phone: contact.phone,
         email: contact.email,
-        smsDelivered: smsResult?.success || false,
+        whatsappDelivered: whatsappResult?.success || false,
       };
     });
 
@@ -194,9 +194,9 @@ export async function POST(request: NextRequest) {
         success: true,
         alertId: newAlert[0].id,
         contactsNotified: contacts.length,
-        smsDelivered: smsResults.successful,
-        smsFailed: smsResults.failed,
-        message: `Emergency alert sent to ${contacts.length} contact(s). ${smsResults.successful} SMS delivered.`,
+        whatsappDelivered: whatsappResults.successful,
+        whatsappFailed: whatsappResults.failed,
+        message: `Emergency alert sent to ${contacts.length} contact(s). ${whatsappResults.successful} WhatsApp messages delivered.`,
         contacts: contactsForResponse,
       },
       { status: 201 }

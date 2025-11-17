@@ -1,0 +1,48 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1762781942856,
+      "tag": "0000_wakeful_nightshade",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1762782092904,
+      "tag": "0001_watery_kang",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1762782588651,
+      "tag": "0002_previous_glorian",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1762867528386,
+      "tag": "0003_dapper_stingray",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1763215622220,
+      "tag": "0004_amused_tempest",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1763216072671,
+      "tag": "0005_steady_shiver_man",
+      "breakpoints": true
+    }
+  ]
+}

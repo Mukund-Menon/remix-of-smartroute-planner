@@ -1,0 +1,1 @@
+ALTER TABLE `trips` ADD `match_radius` integer DEFAULT 10 NOT NULL;
